@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: ${SITE_NAME}_app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${SITE_NAME}.entrypoints=http"
+      - "traefik.http.routers.${SITE_NAME}.rule=Host(`${SITE_DOMAIN}`)"
+      - "traefik.http.middlewares.${SITE_NAME}-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.${SITE_NAME}.middlewares=${SITE_NAME}-https-redirect"
+      - "traefik.http.routers.${SITE_NAME}-secure.entrypoints=https"
+      - "traefik.http.routers.${SITE_NAME}-secure.rule=Host(`${SITE_DOMAIN}`)"
+      - "traefik.http.routers.${SITE_NAME}-secure.tls=true"
+      - "traefik.http.routers.${SITE_NAME}-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.${SITE_NAME}-secure.service=${SITE_NAME}"
+      - "traefik.http.services.${SITE_NAME}.loadbalancer.server.port=3000"
+      - "traefik.http.routers.${SITE_NAME}-secure.middlewares=secureHeaders@file,compress@file"
+      - "traefik.docker.network=web"
+
+networks:
+  web:
+    external: true

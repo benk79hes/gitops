@@ -1,0 +1,34 @@
+# Environment variables
+.env
+
+# Docker volumes and data
+sites/*/wordpress-data/
+sites/*/db-data/
+sites/*/html/wp-content/uploads/
+sites/*/node_modules/
+
+# Traefik SSL certificates (keep acme.json in git, but it should be empty)
+# The file itself needs to exist but should remain empty
+
+# Logs
+logs/
+
+# Backups
+backups/
+
+# Customer access SSH keys
+customer-access/ssh-keys/
+customer-access/sftp-users.conf
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

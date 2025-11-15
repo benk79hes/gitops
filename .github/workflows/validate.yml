@@ -1,0 +1,45 @@
+name: Validate Docker Compose Files
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Validate main docker-compose.yml
+      run: docker-compose -f docker-compose.yml config
+    
+    - name: Validate WordPress template
+      run: |
+        cd sites/example-wordpress
+        docker-compose config
+    
+    - name: Validate static site template
+      run: |
+        cd sites/example-static
+        docker-compose config
+    
+    - name: Validate Node.js template
+      run: |
+        cd sites/example-nodejs
+        docker-compose config
+    
+    - name: Validate customer access
+      run: |
+        cd customer-access
+        docker-compose config
+    
+    - name: Check shell scripts
+      run: |
+        find scripts -name "*.sh" -exec shellcheck {} \; || true

@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # WordPress website
+  wordpress:
+    image: wordpress:latest
+    container_name: ${SITE_NAME}_wordpress
+    restart: unless-stopped
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+    volumes:
+      - ./wordpress-data:/var/www/html
+    networks:
+      - web
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${SITE_NAME}.entrypoints=http"
+      - "traefik.http.routers.${SITE_NAME}.rule=Host(`${SITE_DOMAIN}`)"
+      - "traefik.http.middlewares.${SITE_NAME}-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.${SITE_NAME}.middlewares=${SITE_NAME}-https-redirect"
+      - "traefik.http.routers.${SITE_NAME}-secure.entrypoints=https"
+      - "traefik.http.routers.${SITE_NAME}-secure.rule=Host(`${SITE_DOMAIN}`)"
+      - "traefik.http.routers.${SITE_NAME}-secure.tls=true"
+      - "traefik.http.routers.${SITE_NAME}-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.${SITE_NAME}-secure.service=${SITE_NAME}"
+      - "traefik.http.services.${SITE_NAME}.loadbalancer.server.port=80"
+      - "traefik.http.routers.${SITE_NAME}-secure.middlewares=secureHeaders@file,compress@file"
+      - "traefik.docker.network=web"
+
+  # Database
+  db:
+    image: mariadb:10.11
+    container_name: ${SITE_NAME}_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - ./db-data:/var/lib/mysql
+    networks:
+      - internal
+
+  # phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: ${SITE_NAME}_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    networks:
+      - web
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${SITE_NAME}-pma.entrypoints=http"
+      - "traefik.http.routers.${SITE_NAME}-pma.rule=Host(`pma.${SITE_DOMAIN}`)"
+      - "traefik.http.middlewares.${SITE_NAME}-pma-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.${SITE_NAME}-pma.middlewares=${SITE_NAME}-pma-https-redirect"
+      - "traefik.http.routers.${SITE_NAME}-pma-secure.entrypoints=https"
+      - "traefik.http.routers.${SITE_NAME}-pma-secure.rule=Host(`pma.${SITE_DOMAIN}`)"
+      - "traefik.http.routers.${SITE_NAME}-pma-secure.tls=true"
+      - "traefik.http.routers.${SITE_NAME}-pma-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.${SITE_NAME}-pma-secure.service=${SITE_NAME}-pma"
+      - "traefik.http.services.${SITE_NAME}-pma.loadbalancer.server.port=80"
+      - "traefik.http.routers.${SITE_NAME}-pma-secure.middlewares=secureHeaders@file"
+      - "traefik.docker.network=web"
+
+networks:
+  web:
+    external: true
+  internal:
+    driver: bridge
