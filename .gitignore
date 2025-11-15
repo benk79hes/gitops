@@ -7,8 +7,8 @@ sites/*/db-data/
 sites/*/html/wp-content/uploads/
 sites/*/node_modules/
 
-# Traefik SSL certificates
-traefik-config/acme.json
+# Traefik SSL certificates (keep acme.json in git, but it should be empty)
+# The file itself needs to exist but should remain empty
 
 # Logs
 logs/
