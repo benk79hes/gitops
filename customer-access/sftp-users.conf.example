@@ -1,0 +1,9 @@
+# SFTP Users Configuration
+# Format: username:password:uid:gid:home_directory
+# 
+# Example entries (change passwords before use):
+# customer1:secure_password_1::1001:/home/backups/customer1-site
+# customer2:secure_password_2::1002:/home/backups/customer2-site
+#
+# For production, use SSH keys instead of passwords
+# To add SSH key authentication, create a .ssh/authorized_keys file in the user's home directory
